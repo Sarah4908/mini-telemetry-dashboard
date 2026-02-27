@@ -8,7 +8,6 @@ import {
   Tooltip,
   Legend
 } from "chart.js";
-
 import { Line } from "react-chartjs-2";
 
 ChartJS.register(
@@ -24,16 +23,28 @@ function App() {
   const [temperature, setTemperature] = useState(70);
   const [voltage, setVoltage] = useState(3.3);
   const [pressure, setPressure] = useState(400);
-  const [history, setHistory] = useState([]);
+
+  const [history, setHistory] = useState({
+    temperature: [],
+    voltage: [],
+    pressure: [],
+  });
 
   useEffect(() => {
     const interval = setInterval(() => {
       const newTemp = 65 + Math.random() * 15;
-      setTemperature(newTemp);
-      setVoltage(3 + Math.random() * 0.5);
-      setPressure(380 + Math.random() * 40);
+      const newVoltage = 3 + Math.random() * 0.5;
+      const newPressure = 380 + Math.random() * 40;
 
-      setHistory((prev) => [...prev.slice(-10), newTemp]);
+      setTemperature(newTemp);
+      setVoltage(newVoltage);
+      setPressure(newPressure);
+
+      setHistory((prev) => ({
+        temperature: [...prev.temperature.slice(-10), newTemp],
+        voltage: [...prev.voltage.slice(-10), newVoltage],
+        pressure: [...prev.pressure.slice(-10), newPressure],
+      }));
     }, 2000);
 
     return () => clearInterval(interval);
@@ -42,12 +53,22 @@ function App() {
   const isAnomaly = temperature > 80;
 
   const data = {
-    labels: history.map((_, i) => i + 1),
+    labels: history.temperature.map((_, i) => i + 1),
     datasets: [
       {
-        label: "Temperature",
-        data: history,
+        label: "Temperature (°C)",
+        data: history.temperature,
         borderColor: "cyan",
+      },
+      {
+        label: "Voltage (V)",
+        data: history.voltage,
+        borderColor: "yellow",
+      },
+      {
+        label: "Pressure (Pa)",
+        data: history.pressure,
+        borderColor: "lime",
       },
     ],
   };
