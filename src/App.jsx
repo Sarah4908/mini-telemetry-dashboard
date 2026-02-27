@@ -53,6 +53,17 @@ function App() {
       }));
     }, 2000);
 
+    const commandBtnStyle = {
+    marginRight: "10px",
+    marginTop: "10px",
+    padding: "8px 14px",
+    background: "#2563eb",
+    color: "white",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer"
+  };
+
     return () => clearInterval(interval);
   }, [range]);
 
@@ -239,6 +250,70 @@ function App() {
         </div>
       </div>
 
+      {/* SUBSYSTEM HEALTH */}
+      <div style={{
+        marginTop: "30px",
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "20px"
+      }}>
+
+        <SubsystemCard
+          title="⚡ Power System"
+          status={voltage > 3.4 ? "Warning" : "Nominal"}
+          value={voltage.toFixed(2) + " V"}
+        />
+
+        <SubsystemCard
+          title="🔥 Thermal Control"
+          status={temperature > threshold ? "Critical" : "Stable"}
+          value={temperature.toFixed(2) + " °C"}
+        />
+
+        <SubsystemCard
+          title="📡 Communication"
+          status={Math.random() > 0.2 ? "Connected" : "Weak Signal"}
+          value="Signal Locked"
+        />
+
+        <SubsystemCard
+          title="🧭 Navigation"
+          status="Operational"
+          value="Orbit Stable"
+        />
+      </div>
+
+      {/* QUICK ANALYTICS */}
+      <div style={{
+        marginTop: "30px",
+        background: "#1e293b",
+        padding: "20px",
+        borderRadius: "10px"
+      }}>
+        <h3>📊 Quick Analytics</h3>
+        <p>Max Temp: {Math.max(...history.temperature, 0).toFixed(2)} °C</p>
+        <p>Min Voltage: {Math.min(...history.voltage, 3.3).toFixed(2)} V</p>
+        <p>Pressure Avg: {
+          history.pressure.length
+            ? (history.pressure.reduce((a,b)=>a+b,0) / history.pressure.length).toFixed(2)
+            : "0"
+        } Pa</p>
+      </div>
+
+      {/* COMMAND CONSOLE */}
+      <div style={{
+        marginTop: "30px",
+        background: "#111827",
+        padding: "20px",
+        borderRadius: "10px"
+      }}>
+        <h3>📡 Command Console</h3>
+
+        <button style={commandBtnStyle}>Recalibrate Sensors</button>
+        <button style={commandBtnStyle}>Stabilize Orbit</button>
+        <button style={commandBtnStyle}>Reset Thermal Unit</button>
+      </div>
+
       {/* Modal */}
       {showExplain && (
         <div style={{
@@ -305,6 +380,32 @@ function Card({ title, value }) {
     }}>
       <h3>{title}</h3>
       <p style={{ fontSize: "24px" }}>{value}</p>
+    </div>
+  );
+}
+
+function SubsystemCard({ title, status, value }) {
+  const getColor = () => {
+    if (status === "Critical") return "red";
+    if (status === "Warning" || status === "Weak Signal") return "orange";
+    if (status === "Connected" || status === "Operational" || status === "Stable" || status === "Nominal") return "lime";
+    return "white";
+  };
+
+  return (
+    <div style={{
+      background: "#111827",
+      padding: "15px",
+      borderRadius: "10px",
+      borderLeft: `4px solid ${getColor()}`
+    }}>
+      <h4>{title}</h4>
+      <p style={{ margin: "5px 0", fontSize: "14px" }}>Status: 
+        <span style={{ color: getColor(), marginLeft: "5px" }}>
+          {status}
+        </span>
+      </p>
+      <p style={{ fontSize: "18px" }}>{value}</p>
     </div>
   );
 }
