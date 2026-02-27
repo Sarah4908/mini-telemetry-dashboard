@@ -36,6 +36,18 @@ function App() {
     pressure: [],
   });
 
+  // Button style FIXED (moved outside useEffect)
+  const commandBtnStyle = {
+    marginRight: "10px",
+    marginTop: "10px",
+    padding: "8px 14px",
+    background: "#2563eb",
+    color: "white",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer"
+  };
+
   useEffect(() => {
     const interval = setInterval(() => {
       const newTemp = 65 + Math.random() * 20;
@@ -52,17 +64,6 @@ function App() {
         pressure: [...prev.pressure.slice(-range), newPressure],
       }));
     }, 2000);
-
-    const commandBtnStyle = {
-    marginRight: "10px",
-    marginTop: "10px",
-    padding: "8px 14px",
-    background: "#2563eb",
-    color: "white",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer"
-  };
 
     return () => clearInterval(interval);
   }, [range]);
@@ -82,21 +83,9 @@ function App() {
   const data = {
     labels: history.temperature.map((_, i) => i + 1),
     datasets: [
-      {
-        label: "Temperature (°C)",
-        data: history.temperature,
-        borderColor: "#00ffff",
-      },
-      {
-        label: "Voltage (V)",
-        data: history.voltage,
-        borderColor: "#ffff00",
-      },
-      {
-        label: "Pressure (Pa)",
-        data: history.pressure,
-        borderColor: "#00ff00",
-      },
+      { label: "Temperature (°C)", data: history.temperature, borderColor: "#00ffff" },
+      { label: "Voltage (V)", data: history.voltage, borderColor: "#ffff00" },
+      { label: "Pressure (Pa)", data: history.pressure, borderColor: "#00ff00" },
     ],
   };
 
@@ -118,24 +107,21 @@ function App() {
       }}>
         <h2>🛰 Mission Control</h2>
 
-        {/* Emergency Toggle */}
-        <div style={{ marginTop: "20px" }}>
-          <button
-            onClick={() => setEmergencyMode(!emergencyMode)}
-            style={{
-              padding: "8px 12px",
-              background: emergencyMode ? "red" : "#1e293b",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer"
-            }}
-          >
-            {emergencyMode ? "Deactivate Emergency" : "Activate Emergency"}
-          </button>
-        </div>
+        <button
+          onClick={() => setEmergencyMode(!emergencyMode)}
+          style={{
+            marginTop: "20px",
+            padding: "8px 12px",
+            background: emergencyMode ? "red" : "#1e293b",
+            color: "white",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer"
+          }}
+        >
+          {emergencyMode ? "Deactivate Emergency" : "Activate Emergency"}
+        </button>
 
-        {/* Threshold Slider */}
         <div style={{ marginTop: "25px" }}>
           <h3>🌡 Temp Threshold: {threshold}°C</h3>
           <input
@@ -148,7 +134,6 @@ function App() {
           />
         </div>
 
-        {/* Range Slider */}
         <div style={{ marginTop: "25px" }}>
           <h3>📈 Data Points: {range}</h3>
           <input
@@ -161,7 +146,6 @@ function App() {
           />
         </div>
 
-        {/* AI Confidence */}
         <div style={{ marginTop: "25px" }}>
           <h3>🧠 AI Confidence</h3>
           <div style={{
@@ -173,54 +157,40 @@ function App() {
             <div style={{
               width: `${aiConfidence}%`,
               background: isAnomaly ? "red" : "lime",
-              height: "100%",
-              transition: "0.5s"
+              height: "100%"
             }} />
           </div>
-          <p style={{ fontSize: "14px" }}>{aiConfidence}%</p>
+          <p>{aiConfidence}%</p>
         </div>
 
-        {/* UTC Clock */}
         <div style={{ marginTop: "25px" }}>
           <h3>🌍 UTC Time</h3>
-          <p style={{ fontSize: "18px" }}>{utcTime}</p>
+          <p>{utcTime}</p>
         </div>
       </div>
 
-      {/* MAIN DASHBOARD */}
+      {/* MAIN RIGHT PANEL */}
       <div style={{ flex: 1, padding: "40px" }}>
+
         <h1>🚀 Satellite Telemetry Dashboard</h1>
 
+        {/* Metric Cards */}
         <div style={{ display: "flex", gap: "20px", marginTop: "20px" }}>
           <Card title="Temperature (°C)" value={temperature.toFixed(2)} />
           <Card title="Voltage (V)" value={voltage.toFixed(2)} />
           <Card title="Pressure (Pa)" value={pressure.toFixed(2)} />
         </div>
 
+        {/* Status */}
         <div style={{ marginTop: "30px" }}>
           <h2 style={{
-            color: isAnomaly ? "red" : "#22c55e",
-            animation: emergencyMode && isAnomaly ? "blink 1s infinite" : "none"
+            color: isAnomaly ? "red" : "#22c55e"
           }}>
             Status: {isAnomaly ? "🔴 Anomaly Detected" : "🟢 Normal"}
           </h2>
-
-          <button
-            onClick={() => setShowExplain(true)}
-            style={{
-              marginTop: "10px",
-              padding: "8px 14px",
-              background: "#2563eb",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer"
-            }}
-          >
-            🧠 Explain Anomaly
-          </button>
         </div>
 
+        {/* Chart */}
         <div style={{
           marginTop: "40px",
           background: "#1e293b",
@@ -230,141 +200,44 @@ function App() {
           <Line data={data} />
         </div>
 
-        {/* Logs */}
+        {/* Subsystem Grid */}
+        <div style={{
+          marginTop: "30px",
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "20px"
+        }}>
+          <SubsystemCard title="⚡ Power System"
+            status={voltage > 3.4 ? "Warning" : "Nominal"}
+            value={voltage.toFixed(2) + " V"} />
+
+          <SubsystemCard title="🔥 Thermal Control"
+            status={temperature > threshold ? "Critical" : "Stable"}
+            value={temperature.toFixed(2) + " °C"} />
+
+          <SubsystemCard title="📡 Communication"
+            status="Connected"
+            value="Signal Locked" />
+
+          <SubsystemCard title="🧭 Navigation"
+            status="Operational"
+            value="Orbit Stable" />
+        </div>
+
+        {/* Command Console */}
         <div style={{
           marginTop: "30px",
           background: "#111827",
           padding: "20px",
-          borderRadius: "10px",
-          height: "200px",
-          overflowY: "auto",
-          fontFamily: "monospace",
-          fontSize: "13px"
+          borderRadius: "10px"
         }}>
-          <h3>📋 Live System Logs</h3>
-          {history.temperature.slice(-6).map((temp, i) => (
-            <p key={i} style={{ color: temp > threshold ? "red" : "#22c55e" }}>
-              [{new Date().toLocaleTimeString()}] Temp: {temp.toFixed(2)}°C
-            </p>
-          ))}
+          <h3>📡 Command Console</h3>
+          <button style={commandBtnStyle}>Recalibrate Sensors</button>
+          <button style={commandBtnStyle}>Stabilize Orbit</button>
+          <button style={commandBtnStyle}>Reset Thermal Unit</button>
         </div>
+
       </div>
-
-      {/* SUBSYSTEM HEALTH */}
-      <div style={{
-        marginTop: "30px",
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "20px"
-      }}>
-
-        <SubsystemCard
-          title="⚡ Power System"
-          status={voltage > 3.4 ? "Warning" : "Nominal"}
-          value={voltage.toFixed(2) + " V"}
-        />
-
-        <SubsystemCard
-          title="🔥 Thermal Control"
-          status={temperature > threshold ? "Critical" : "Stable"}
-          value={temperature.toFixed(2) + " °C"}
-        />
-
-        <SubsystemCard
-          title="📡 Communication"
-          status={Math.random() > 0.2 ? "Connected" : "Weak Signal"}
-          value="Signal Locked"
-        />
-
-        <SubsystemCard
-          title="🧭 Navigation"
-          status="Operational"
-          value="Orbit Stable"
-        />
-      </div>
-
-      {/* QUICK ANALYTICS */}
-      <div style={{
-        marginTop: "30px",
-        background: "#1e293b",
-        padding: "20px",
-        borderRadius: "10px"
-      }}>
-        <h3>📊 Quick Analytics</h3>
-        <p>Max Temp: {Math.max(...history.temperature, 0).toFixed(2)} °C</p>
-        <p>Min Voltage: {Math.min(...history.voltage, 3.3).toFixed(2)} V</p>
-        <p>Pressure Avg: {
-          history.pressure.length
-            ? (history.pressure.reduce((a,b)=>a+b,0) / history.pressure.length).toFixed(2)
-            : "0"
-        } Pa</p>
-      </div>
-
-      {/* COMMAND CONSOLE */}
-      <div style={{
-        marginTop: "30px",
-        background: "#111827",
-        padding: "20px",
-        borderRadius: "10px"
-      }}>
-        <h3>📡 Command Console</h3>
-
-        <button style={commandBtnStyle}>Recalibrate Sensors</button>
-        <button style={commandBtnStyle}>Stabilize Orbit</button>
-        <button style={commandBtnStyle}>Reset Thermal Unit</button>
-      </div>
-
-      {/* Modal */}
-      {showExplain && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          background: "rgba(0,0,0,0.7)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center"
-        }}>
-          <div style={{
-            background: "#111827",
-            padding: "30px",
-            borderRadius: "10px",
-            width: "400px"
-          }}>
-            <h3>AI Explanation</h3>
-            <p>
-              {isAnomaly
-                ? "Temperature exceeded adaptive threshold. Model predicts thermal instability risk in next orbit cycle."
-                : "Telemetry stable. No anomaly risk predicted."}
-            </p>
-            <button
-              onClick={() => setShowExplain(false)}
-              style={{
-                marginTop: "15px",
-                padding: "6px 12px",
-                background: "red",
-                color: "white",
-                border: "none",
-                borderRadius: "6px"
-              }}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
-      <style>
-        {`
-          @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.3; }
-            100% { opacity: 1; }
-          }
-        `}
-      </style>
     </div>
   );
 }
@@ -375,8 +248,7 @@ function Card({ title, value }) {
       background: "#1e293b",
       padding: "20px",
       borderRadius: "10px",
-      width: "200px",
-      boxShadow: "0 0 10px rgba(0,255,255,0.2)"
+      width: "200px"
     }}>
       <h3>{title}</h3>
       <p style={{ fontSize: "24px" }}>{value}</p>
@@ -387,9 +259,8 @@ function Card({ title, value }) {
 function SubsystemCard({ title, status, value }) {
   const getColor = () => {
     if (status === "Critical") return "red";
-    if (status === "Warning" || status === "Weak Signal") return "orange";
-    if (status === "Connected" || status === "Operational" || status === "Stable" || status === "Nominal") return "lime";
-    return "white";
+    if (status === "Warning") return "orange";
+    return "lime";
   };
 
   return (
@@ -400,12 +271,8 @@ function SubsystemCard({ title, status, value }) {
       borderLeft: `4px solid ${getColor()}`
     }}>
       <h4>{title}</h4>
-      <p style={{ margin: "5px 0", fontSize: "14px" }}>Status: 
-        <span style={{ color: getColor(), marginLeft: "5px" }}>
-          {status}
-        </span>
-      </p>
-      <p style={{ fontSize: "18px" }}>{value}</p>
+      <p>Status: <span style={{ color: getColor() }}>{status}</span></p>
+      <p>{value}</p>
     </div>
   );
 }
