@@ -23,7 +23,12 @@ function App() {
   const [temperature, setTemperature] = useState(70);
   const [voltage, setVoltage] = useState(3.3);
   const [pressure, setPressure] = useState(400);
+
+  const [threshold, setThreshold] = useState(80);
+  const [range, setRange] = useState(10);
+  const [emergencyMode, setEmergencyMode] = useState(false);
   const [utcTime, setUtcTime] = useState("");
+  const [showExplain, setShowExplain] = useState(false);
 
   const [history, setHistory] = useState({
     temperature: [],
@@ -42,14 +47,14 @@ function App() {
       setPressure(newPressure);
 
       setHistory((prev) => ({
-        temperature: [...prev.temperature.slice(-10), newTemp],
-        voltage: [...prev.voltage.slice(-10), newVoltage],
-        pressure: [...prev.pressure.slice(-10), newPressure],
+        temperature: [...prev.temperature.slice(-range), newTemp],
+        voltage: [...prev.voltage.slice(-range), newVoltage],
+        pressure: [...prev.pressure.slice(-range), newPressure],
       }));
     }, 2000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [range]);
 
   useEffect(() => {
     const clock = setInterval(() => {
@@ -60,8 +65,8 @@ function App() {
     return () => clearInterval(clock);
   }, []);
 
-  const isAnomaly = temperature > 80;
-  const aiConfidence = isAnomaly ? 68 : 94;
+  const isAnomaly = temperature > threshold;
+  const aiConfidence = isAnomaly ? 65 : 94;
 
   const data = {
     labels: history.temperature.map((_, i) => i + 1),
@@ -85,70 +90,64 @@ function App() {
   };
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#0f172a", color: "white" }}>
+    <div style={{
+      display: "flex",
+      minHeight: "100vh",
+      background: emergencyMode ? "#1a0000" : "#0f172a",
+      color: "white",
+      transition: "0.3s"
+    }}>
 
       {/* SIDEBAR */}
       <div style={{
-        width: "280px",
+        width: "300px",
         padding: "25px",
         background: "linear-gradient(180deg, #0f172a, #111827)",
         borderRight: "1px solid #1f2937"
       }}>
         <h2>🛰 Mission Control</h2>
 
-        {/* Orbit Animation */}
-        <div style={{ position: "relative", width: "180px", height: "180px", margin: "30px auto" }}>
-          <div style={{
-            width: "60px",
-            height: "60px",
-            background: "radial-gradient(circle, #4fc3f7, #0d47a1)",
-            borderRadius: "50%",
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            boxShadow: "0 0 20px #4fc3f7"
-          }} />
-
-          <div style={{
-            width: "150px",
-            height: "150px",
-            border: "1px dashed rgba(255,255,255,0.3)",
-            borderRadius: "50%",
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            animation: "spin 8s linear infinite"
-          }}>
-            <div style={{
-              width: "10px",
-              height: "10px",
-              background: "#00ffcc",
-              borderRadius: "50%",
-              position: "absolute",
-              top: "-5px",
-              left: "50%",
-              transform: "translateX(-50%)",
-              boxShadow: "0 0 10px #00ffcc"
-            }} />
-          </div>
+        {/* Emergency Toggle */}
+        <div style={{ marginTop: "20px" }}>
+          <button
+            onClick={() => setEmergencyMode(!emergencyMode)}
+            style={{
+              padding: "8px 12px",
+              background: emergencyMode ? "red" : "#1e293b",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer"
+            }}
+          >
+            {emergencyMode ? "Deactivate Emergency" : "Activate Emergency"}
+          </button>
         </div>
 
-        {/* Signal Strength */}
-        <h3>📡 Signal Strength</h3>
-        <div style={{ display: "flex", gap: "5px", marginTop: "10px" }}>
-          {[1,2,3,4,5].map((bar) => (
-            <div key={bar}
-              style={{
-                width: "10px",
-                height: `${bar * 10}px`,
-                background: "#00ff00",
-                animation: "pulse 1.5s infinite alternate",
-                animationDelay: `${bar * 0.2}s`
-              }}
-            />
-          ))}
+        {/* Threshold Slider */}
+        <div style={{ marginTop: "25px" }}>
+          <h3>🌡 Temp Threshold: {threshold}°C</h3>
+          <input
+            type="range"
+            min="70"
+            max="100"
+            value={threshold}
+            onChange={(e) => setThreshold(Number(e.target.value))}
+            style={{ width: "100%" }}
+          />
+        </div>
+
+        {/* Range Slider */}
+        <div style={{ marginTop: "25px" }}>
+          <h3>📈 Data Points: {range}</h3>
+          <input
+            type="range"
+            min="5"
+            max="20"
+            value={range}
+            onChange={(e) => setRange(Number(e.target.value))}
+            style={{ width: "100%" }}
+          />
         </div>
 
         {/* AI Confidence */}
@@ -158,8 +157,7 @@ function App() {
             background: "#1e293b",
             height: "10px",
             borderRadius: "10px",
-            overflow: "hidden",
-            marginTop: "8px"
+            overflow: "hidden"
           }}>
             <div style={{
               width: `${aiConfidence}%`,
@@ -168,7 +166,7 @@ function App() {
               transition: "0.5s"
             }} />
           </div>
-          <p style={{ fontSize: "14px", marginTop: "5px" }}>{aiConfidence}%</p>
+          <p style={{ fontSize: "14px" }}>{aiConfidence}%</p>
         </div>
 
         {/* UTC Clock */}
@@ -176,18 +174,6 @@ function App() {
           <h3>🌍 UTC Time</h3>
           <p style={{ fontSize: "18px" }}>{utcTime}</p>
         </div>
-
-        <style>
-          {`
-            @keyframes spin {
-              100% { transform: translate(-50%, -50%) rotate(360deg); }
-            }
-            @keyframes pulse {
-              from { opacity: 0.4; }
-              to { opacity: 1; }
-            }
-          `}
-        </style>
       </div>
 
       {/* MAIN DASHBOARD */}
@@ -201,72 +187,111 @@ function App() {
         </div>
 
         <div style={{ marginTop: "30px" }}>
-          <h2>
+          <h2 style={{
+            color: isAnomaly ? "red" : "#22c55e",
+            animation: emergencyMode && isAnomaly ? "blink 1s infinite" : "none"
+          }}>
             Status: {isAnomaly ? "🔴 Anomaly Detected" : "🟢 Normal"}
           </h2>
+
+          <button
+            onClick={() => setShowExplain(true)}
+            style={{
+              marginTop: "10px",
+              padding: "8px 14px",
+              background: "#2563eb",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer"
+            }}
+          >
+            🧠 Explain Anomaly
+          </button>
         </div>
 
-        <div style={{ marginTop: "40px", background: "#1e293b", padding: "20px", borderRadius: "10px" }}>
+        <div style={{
+          marginTop: "40px",
+          background: "#1e293b",
+          padding: "20px",
+          borderRadius: "10px"
+        }}>
           <Line data={data} />
-              {/* SYSTEM PANELS */}
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginTop: "30px" }}>
-      
-      {/* Live Logs */}
-      <div style={{
-        background: "#111827",
-        padding: "20px",
-        borderRadius: "10px",
-        height: "200px",
-        overflowY: "auto",
-        fontFamily: "monospace",
-        fontSize: "13px"
-      }}>
-        <h3>📋 Live System Logs</h3>
-        {history.temperature.slice(-6).map((temp, i) => (
-          <p key={i} style={{ color: temp > 80 ? "red" : "#22c55e" }}>
-            [{new Date().toLocaleTimeString()}] Temp: {temp.toFixed(2)}°C
-          </p>
-        ))}
+        </div>
+
+        {/* Logs */}
+        <div style={{
+          marginTop: "30px",
+          background: "#111827",
+          padding: "20px",
+          borderRadius: "10px",
+          height: "200px",
+          overflowY: "auto",
+          fontFamily: "monospace",
+          fontSize: "13px"
+        }}>
+          <h3>📋 Live System Logs</h3>
+          {history.temperature.slice(-6).map((temp, i) => (
+            <p key={i} style={{ color: temp > threshold ? "red" : "#22c55e" }}>
+              [{new Date().toLocaleTimeString()}] Temp: {temp.toFixed(2)}°C
+            </p>
+          ))}
+        </div>
       </div>
 
-      {/* Recent Events */}
-      <div style={{
-        background: "#111827",
-        padding: "20px",
-        borderRadius: "10px",
-        height: "200px"
-      }}>
-        <h3>⚠ Recent Events</h3>
-        {isAnomaly ? (
-          <p style={{ color: "red" }}>
-            🔴 High temperature detected. Investigating thermal subsystem.
-          </p>
-        ) : (
-          <p style={{ color: "#22c55e" }}>
-            🟢 All systems operating within nominal parameters.
-          </p>
-        )}
-      </div>
-    </div>
-
-    {/* SMART INSIGHTS */}
-    <div style={{
-      background: "#1e293b",
-      padding: "20px",
-      borderRadius: "10px",
-      marginTop: "20px"
-    }}>
-      <h3>🧠 AI Smart Insights</h3>
-      <p>
-        {isAnomaly
-          ? "Temperature spike detected beyond safe threshold. Recommend checking cooling system integrity and power distribution."
-          : "Telemetry signals stable. Predictive model indicates low anomaly probability in next 5 cycles."}
-      </p>
-    </div>
-            </div>
+      {/* Modal */}
+      {showExplain && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          background: "rgba(0,0,0,0.7)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center"
+        }}>
+          <div style={{
+            background: "#111827",
+            padding: "30px",
+            borderRadius: "10px",
+            width: "400px"
+          }}>
+            <h3>AI Explanation</h3>
+            <p>
+              {isAnomaly
+                ? "Temperature exceeded adaptive threshold. Model predicts thermal instability risk in next orbit cycle."
+                : "Telemetry stable. No anomaly risk predicted."}
+            </p>
+            <button
+              onClick={() => setShowExplain(false)}
+              style={{
+                marginTop: "15px",
+                padding: "6px 12px",
+                background: "red",
+                color: "white",
+                border: "none",
+                borderRadius: "6px"
+              }}
+            >
+              Close
+            </button>
           </div>
         </div>
-      );
+      )}
+
+      <style>
+        {`
+          @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+          }
+        `}
+      </style>
+    </div>
+  );
 }
 
 function Card({ title, value }) {
