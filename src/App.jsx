@@ -208,10 +208,65 @@ function App() {
 
         <div style={{ marginTop: "40px", background: "#1e293b", padding: "20px", borderRadius: "10px" }}>
           <Line data={data} />
-        </div>
+              {/* SYSTEM PANELS */}
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginTop: "30px" }}>
+      
+      {/* Live Logs */}
+      <div style={{
+        background: "#111827",
+        padding: "20px",
+        borderRadius: "10px",
+        height: "200px",
+        overflowY: "auto",
+        fontFamily: "monospace",
+        fontSize: "13px"
+      }}>
+        <h3>📋 Live System Logs</h3>
+        {history.temperature.slice(-6).map((temp, i) => (
+          <p key={i} style={{ color: temp > 80 ? "red" : "#22c55e" }}>
+            [{new Date().toLocaleTimeString()}] Temp: {temp.toFixed(2)}°C
+          </p>
+        ))}
+      </div>
+
+      {/* Recent Events */}
+      <div style={{
+        background: "#111827",
+        padding: "20px",
+        borderRadius: "10px",
+        height: "200px"
+      }}>
+        <h3>⚠ Recent Events</h3>
+        {isAnomaly ? (
+          <p style={{ color: "red" }}>
+            🔴 High temperature detected. Investigating thermal subsystem.
+          </p>
+        ) : (
+          <p style={{ color: "#22c55e" }}>
+            🟢 All systems operating within nominal parameters.
+          </p>
+        )}
       </div>
     </div>
-  );
+
+    {/* SMART INSIGHTS */}
+    <div style={{
+      background: "#1e293b",
+      padding: "20px",
+      borderRadius: "10px",
+      marginTop: "20px"
+    }}>
+      <h3>🧠 AI Smart Insights</h3>
+      <p>
+        {isAnomaly
+          ? "Temperature spike detected beyond safe threshold. Recommend checking cooling system integrity and power distribution."
+          : "Telemetry signals stable. Predictive model indicates low anomaly probability in next 5 cycles."}
+      </p>
+    </div>
+            </div>
+          </div>
+        </div>
+      );
 }
 
 function Card({ title, value }) {
