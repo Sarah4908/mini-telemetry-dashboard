@@ -1,16 +1,101 @@
-# React + Vite
+# 🛰 Satellite Telemetry Monitoring & Anomaly Detection System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A real-time satellite telemetry monitoring dashboard with statistical anomaly detection using Isolation Forest.
 
-Currently, two official plugins are available:
+This system simulates satellite telemetry data, processes it through a machine learning anomaly detection service, and visualizes system health in a live dashboard.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 🚀 Live Deployment
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Frontend (Vercel):
+https://mini-telemetry-dashboard.vercel.app
 
-## Expanding the ESLint configuration
+Backend (Render):
+https://mini-telemetry-dashboard.onrender.com
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 📊 Features
+
+- Real-time telemetry simulation (Temperature, Voltage, Altitude)
+- Machine learning–based anomaly detection
+- Live anomaly scoring
+- System status indicator
+- Telemetry history visualization
+- Backend connectivity monitoring
+- Diagnosis panel for detected irregularities
+
+---
+
+## 🧠 Anomaly Detection Logic
+
+The backend uses:
+
+- **Isolation Forest**
+- Trained on normal telemetry distribution
+- Detects statistical deviations from learned patterns
+
+Features used:
+- Temperature
+- Voltage
+- Altitude
+- Temperature delta
+- Voltage delta
+- Rolling temperature mean
+
+The model outputs:
+- `anomalyScore`
+- `isAnomaly` flag
+
+---
+## 🏗 Architecture
+React Frontend (Vite + Chart.js)
+↓
+FastAPI ML Microservice
+↓
+Isolation Forest Model (joblib)
+
+### Frontend
+- React (Vite)
+- Chart.js
+- Fetch API polling every 2 seconds
+
+### Backend
+- FastAPI
+- scikit-learn
+- joblib
+- NumPy
+
+---
+
+## ⚙️ Local Setup
+
+### Clone Repository
+
+```bash
+git clone https://github.com/Sarah4908/mini-telemetry-dashboard.git
+cd mini-telemetry-dashboard
+```
+
+ ### Backend Setup
+ ```bash
+cd backend/ml-service
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app:app --reload
+```
+
+### Frontend Setup
+```bash
+cd ../../
+npm install
+npm run dev
+Environment Variables
+```
+
+### For production (Vercel):
+```bash
+VITE_API_URL=https://mini-telemetry-dashboard.onrender.com
+```

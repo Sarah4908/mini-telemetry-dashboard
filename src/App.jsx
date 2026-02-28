@@ -185,7 +185,7 @@ function App() {
               : "4px solid #065f46"
           }}
         >
-          <h3>🚨 AI Diagnosis</h3>
+          <h3>🚨 Anomaly Diagnosis</h3>
 
           <p style={{ marginTop: 10 }}>
             {getIssueType()}
