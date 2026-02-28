@@ -49,6 +49,20 @@ The model outputs:
 - `isAnomaly` flag
 
 ---
+
+## screenshots
+<img width="1850" height="462" alt="image" src="https://github.com/user-attachments/assets/66cb0493-21c2-44f1-bd5f-148815196cb4" />
+<img width="1846" height="846" alt="image" src="https://github.com/user-attachments/assets/b7ba6620-74c4-41bd-83db-66c875ef1a9d" />
+<img width="1799" height="484" alt="image" src="https://github.com/user-attachments/assets/fa2cdb4f-ee26-4102-af3b-58d7e943b7d0" />
+
+## 📄 License
+
+This project is licensed under the MIT License.  
+See the [LICENSE](LICENSE) file for details.
+
+
+
+
 ## 🏗 Architecture
 React Frontend (Vite + Chart.js)
 ↓
