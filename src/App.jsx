@@ -203,8 +203,8 @@ function StatusBadge({ label, status, good }) {
 const styles = {
   container: {
     display: "flex",
-    height: "100vh",
-    background: "#0f172a",
+    minHeight: "100vh",
+    background: "linear-gradient(180deg, #0f172a 0%, #0b1120 100%)",
     color: "white",
     fontFamily: "system-ui"
   },
