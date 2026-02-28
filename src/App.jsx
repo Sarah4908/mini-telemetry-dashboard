@@ -204,9 +204,11 @@ const styles = {
   container: {
     display: "flex",
     minHeight: "100vh",
+    width: "100vw",
     background: "linear-gradient(180deg, #0f172a 0%, #0b1120 100%)",
     color: "white",
-    fontFamily: "system-ui"
+    fontFamily: "system-ui",
+    overflowX: "hidden"  
   },
   sidebar: {
     width: "280px",
