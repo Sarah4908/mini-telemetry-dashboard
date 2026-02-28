@@ -89,7 +89,15 @@ function App() {
     }, 1000);
     return () => clearInterval(clock);
   }, []);
+  const getIssueType = () => {
+    if (!isAnomaly) return "No issue detected";
 
+    if (temperature > 85) return "Thermal Overload Risk";
+    if (voltage < 3.1) return "Power System Instability";
+    if (altitude > 420) return "Orbital Drift Detected";
+
+    return "Unknown System Irregularity";
+  };
   const chartData = {
     labels: history.temperature.map((_, i) => i + 1),
     datasets: [
@@ -165,6 +173,29 @@ function App() {
 
         <div style={styles.chartContainer}>
           <Line data={chartData} />
+        </div>
+        <div
+          style={{
+            marginTop: "30px",
+            background: "#1e293b",
+            padding: "20px",
+            borderRadius: "12px",
+            borderLeft: isAnomaly
+              ? "4px solid red"
+              : "4px solid #065f46"
+          }}
+        >
+          <h3>🚨 AI Diagnosis</h3>
+
+          <p style={{ marginTop: 10 }}>
+            {getIssueType()}
+          </p>
+
+          {isAnomaly && (
+            <p style={{ marginTop: 8, fontSize: 14, opacity: 0.7 }}>
+              Model detected deviation from learned telemetry distribution.
+            </p>
+          )}
         </div>
       </div>
     </div>
