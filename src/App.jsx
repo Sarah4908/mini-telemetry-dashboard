@@ -58,13 +58,17 @@ function App() {
           altitude: 400 + Math.random() * 20
         };
 
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/predict`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(payload)
-        });
+        const API_URL =
+            import.meta.env.VITE_API_URL ??
+            "https://mini-telemetry-dashboard.onrender.com";
+
+          const res = await fetch(`${API_URL}/predict`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+          });
 
         const data = await res.json();
 
