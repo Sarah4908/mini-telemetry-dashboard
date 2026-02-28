@@ -23,12 +23,12 @@ function App() {
   const [temperature, setTemperature] = useState(70);
   const [voltage, setVoltage] = useState(3.3);
   const [pressure, setPressure] = useState(400);
+  const [isAnomaly, setIsAnomaly] = useState(false);
+  const [anomalyScore, setAnomalyScore] = useState(0);
 
-  const [threshold, setThreshold] = useState(80);
   const [range, setRange] = useState(10);
   const [emergencyMode, setEmergencyMode] = useState(false);
   const [utcTime, setUtcTime] = useState("");
-  const [showExplain, setShowExplain] = useState(false);
 
   const [history, setHistory] = useState({
     temperature: [],
@@ -36,7 +36,6 @@ function App() {
     pressure: [],
   });
 
-  // Button style FIXED (moved outside useEffect)
   const commandBtnStyle = {
     marginRight: "10px",
     marginTop: "10px",
@@ -48,21 +47,42 @@ function App() {
     cursor: "pointer"
   };
 
+  // 🔥 CONNECTED TO BACKEND
   useEffect(() => {
-    const interval = setInterval(() => {
-      const newTemp = 65 + Math.random() * 20;
-      const newVoltage = 3 + Math.random() * 0.5;
-      const newPressure = 380 + Math.random() * 40;
+    const interval = setInterval(async () => {
+      try {
+        const payload = {
+          satelliteId: "SAT-001",
+          temperature: 65 + Math.random() * 20,
+          voltage: 3 + Math.random() * 0.5,
+          altitude: 400 + Math.random() * 20
+        };
 
-      setTemperature(newTemp);
-      setVoltage(newVoltage);
-      setPressure(newPressure);
+        const res = await fetch("http://127.0.0.1:8000/predict", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
 
-      setHistory((prev) => ({
-        temperature: [...prev.temperature.slice(-range), newTemp],
-        voltage: [...prev.voltage.slice(-range), newVoltage],
-        pressure: [...prev.pressure.slice(-range), newPressure],
-      }));
+        const data = await res.json();
+
+        setTemperature(data.temperature);
+        setVoltage(data.voltage);
+        setPressure(data.altitude);
+        setIsAnomaly(data.isAnomaly);
+        setAnomalyScore(data.anomalyScore);
+
+        setHistory((prev) => ({
+          temperature: [...prev.temperature.slice(-range), data.temperature],
+          voltage: [...prev.voltage.slice(-range), data.voltage],
+          pressure: [...prev.pressure.slice(-range), data.altitude],
+        }));
+
+      } catch (err) {
+        console.error("Backend error:", err);
+      }
     }, 2000);
 
     return () => clearInterval(interval);
@@ -77,15 +97,14 @@ function App() {
     return () => clearInterval(clock);
   }, []);
 
-  const isAnomaly = temperature > threshold;
-  const aiConfidence = isAnomaly ? 65 : 94;
+  const aiConfidence = isAnomaly ? 60 : 95;
 
   const data = {
     labels: history.temperature.map((_, i) => i + 1),
     datasets: [
       { label: "Temperature (°C)", data: history.temperature, borderColor: "#00ffff" },
       { label: "Voltage (V)", data: history.voltage, borderColor: "#ffff00" },
-      { label: "Pressure (Pa)", data: history.pressure, borderColor: "#00ff00" },
+      { label: "Altitude", data: history.pressure, borderColor: "#00ff00" },
     ],
   };
 
@@ -94,8 +113,7 @@ function App() {
       display: "flex",
       minHeight: "100vh",
       background: emergencyMode ? "#1a0000" : "#0f172a",
-      color: "white",
-      transition: "0.3s"
+      color: "white"
     }}>
 
       {/* SIDEBAR */}
@@ -115,52 +133,15 @@ function App() {
             background: emergencyMode ? "red" : "#1e293b",
             color: "white",
             border: "none",
-            borderRadius: "6px",
-            cursor: "pointer"
+            borderRadius: "6px"
           }}
         >
           {emergencyMode ? "Deactivate Emergency" : "Activate Emergency"}
         </button>
 
         <div style={{ marginTop: "25px" }}>
-          <h3>🌡 Temp Threshold: {threshold}°C</h3>
-          <input
-            type="range"
-            min="70"
-            max="100"
-            value={threshold}
-            onChange={(e) => setThreshold(Number(e.target.value))}
-            style={{ width: "100%" }}
-          />
-        </div>
-
-        <div style={{ marginTop: "25px" }}>
-          <h3>📈 Data Points: {range}</h3>
-          <input
-            type="range"
-            min="5"
-            max="20"
-            value={range}
-            onChange={(e) => setRange(Number(e.target.value))}
-            style={{ width: "100%" }}
-          />
-        </div>
-
-        <div style={{ marginTop: "25px" }}>
-          <h3>🧠 AI Confidence</h3>
-          <div style={{
-            background: "#1e293b",
-            height: "10px",
-            borderRadius: "10px",
-            overflow: "hidden"
-          }}>
-            <div style={{
-              width: `${aiConfidence}%`,
-              background: isAnomaly ? "red" : "lime",
-              height: "100%"
-            }} />
-          </div>
-          <p>{aiConfidence}%</p>
+          <h3>🧠 Anomaly Score</h3>
+          <p>{anomalyScore.toFixed(4)}</p>
         </div>
 
         <div style={{ marginTop: "25px" }}>
@@ -169,28 +150,23 @@ function App() {
         </div>
       </div>
 
-      {/* MAIN RIGHT PANEL */}
+      {/* MAIN PANEL */}
       <div style={{ flex: 1, padding: "40px" }}>
 
         <h1>🚀 Satellite Telemetry Dashboard</h1>
 
-        {/* Metric Cards */}
         <div style={{ display: "flex", gap: "20px", marginTop: "20px" }}>
           <Card title="Temperature (°C)" value={temperature.toFixed(2)} />
           <Card title="Voltage (V)" value={voltage.toFixed(2)} />
-          <Card title="Pressure (Pa)" value={pressure.toFixed(2)} />
+          <Card title="Altitude" value={pressure.toFixed(2)} />
         </div>
 
-        {/* Status */}
         <div style={{ marginTop: "30px" }}>
-          <h2 style={{
-            color: isAnomaly ? "red" : "#22c55e"
-          }}>
+          <h2 style={{ color: isAnomaly ? "red" : "#22c55e" }}>
             Status: {isAnomaly ? "🔴 Anomaly Detected" : "🟢 Normal"}
           </h2>
         </div>
 
-        {/* Chart */}
         <div style={{
           marginTop: "40px",
           background: "#1e293b",
@@ -200,31 +176,6 @@ function App() {
           <Line data={data} />
         </div>
 
-        {/* Subsystem Grid */}
-        <div style={{
-          marginTop: "30px",
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "20px"
-        }}>
-          <SubsystemCard title="⚡ Power System"
-            status={voltage > 3.4 ? "Warning" : "Nominal"}
-            value={voltage.toFixed(2) + " V"} />
-
-          <SubsystemCard title="🔥 Thermal Control"
-            status={temperature > threshold ? "Critical" : "Stable"}
-            value={temperature.toFixed(2) + " °C"} />
-
-          <SubsystemCard title="📡 Communication"
-            status="Connected"
-            value="Signal Locked" />
-
-          <SubsystemCard title="🧭 Navigation"
-            status="Operational"
-            value="Orbit Stable" />
-        </div>
-
-        {/* Command Console */}
         <div style={{
           marginTop: "30px",
           background: "#111827",
@@ -252,27 +203,6 @@ function Card({ title, value }) {
     }}>
       <h3>{title}</h3>
       <p style={{ fontSize: "24px" }}>{value}</p>
-    </div>
-  );
-}
-
-function SubsystemCard({ title, status, value }) {
-  const getColor = () => {
-    if (status === "Critical") return "red";
-    if (status === "Warning") return "orange";
-    return "lime";
-  };
-
-  return (
-    <div style={{
-      background: "#111827",
-      padding: "15px",
-      borderRadius: "10px",
-      borderLeft: `4px solid ${getColor()}`
-    }}>
-      <h4>{title}</h4>
-      <p>Status: <span style={{ color: getColor() }}>{status}</span></p>
-      <p>{value}</p>
     </div>
   );
 }
